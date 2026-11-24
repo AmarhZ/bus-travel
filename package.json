@@ -1,0 +1,23 @@
+{
+  "name": "bus-travel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:setup": "node --env-file=.env.local scripts/setup-db.mjs",
+    "db:seed": "node --env-file=.env.local scripts/setup-db.mjs --seed"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.18",
+    "next": "^15.5.29",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}
