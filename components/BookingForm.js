@@ -160,16 +160,19 @@ export default function BookingForm({ scheduleId, price, capacity, layout, initi
 
       <aside className="card sticky">
         <h3>Ringkasan</h3>
-        <div className="sum-row">
+        <div className="sum-row hide-sm">
           <span className="muted">Kursi</span>
           <span>{selected.length ? selected.join(', ') : '-'}</span>
         </div>
-        <div className="sum-row">
+        <div className="sum-row hide-sm">
           <span className="muted">Harga per kursi</span>
           <span>{rupiah(price)}</span>
         </div>
         <div className="sum-row total">
-          <span>Total</span>
+          <span>
+            Total
+            <small className="show-sm"> ({selected.length} kursi)</small>
+          </span>
           <span>{rupiah(total)}</span>
         </div>
         {error && (
@@ -180,7 +183,7 @@ export default function BookingForm({ scheduleId, price, capacity, layout, initi
         <button className="btn signal block" type="submit" disabled={busy} style={{ marginTop: 14 }}>
           {busy ? 'Memproses...' : 'Pesan sekarang'}
         </button>
-        <p className="small muted" style={{ marginTop: 10, marginBottom: 0 }}>
+        <p className="small muted hide-sm" style={{ marginTop: 10, marginBottom: 0 }}>
           Setelah memesan, Anda mendapat kode pemesanan untuk membayar dan melihat e-tiket.
         </p>
       </aside>

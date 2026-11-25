@@ -7,7 +7,9 @@ import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 
 export const dynamic = 'force-dynamic';
 
-async function loadSchedules({ from, to, date }) {
+const PAGE_SIZE = 8;
+
+async function loadSchedules({ from, to, date, limit = PAGE_SIZE + 1 }) {
   const params = [];
   const where = [
     `s.status = 'scheduled'`,
@@ -37,7 +39,7 @@ async function loadSchedules({ from, to, date }) {
      JOIN buses b ON b.id = s.bus_id
      WHERE ${where.join(' AND ')}
      ORDER BY s.departure_at
-     LIMIT 40`,
+     LIMIT ${Math.max(1, Math.min(100, Number(limit) || PAGE_SIZE + 1))}`,
     params,
   );
 }
@@ -48,9 +50,11 @@ export default async function HomePage({ searchParams }) {
   const to = typeof sp.to === 'string' ? sp.to : '';
   const date = typeof sp.date === 'string' ? sp.date : '';
   const searching = Boolean(from || to || date);
+  const shown = Math.max(PAGE_SIZE, Math.min(96, parseInt(sp.limit, 10) || PAGE_SIZE));
 
   let settings;
   let schedules = [];
+  let hasMore = false;
   let board = [];
   let routes = [];
   let fleet = [];
@@ -60,8 +64,8 @@ export default async function HomePage({ searchParams }) {
     await expireStale();
     [settings, schedules, board, routes, fleet] = await Promise.all([
       getSettings(),
-      loadSchedules({ from, to, date }),
-      loadSchedules({}).then((r) => r.slice(0, 5)),
+      loadSchedules({ from, to, date, limit: shown + 1 }),
+      loadSchedules({ limit: 5 }),
       query(
         `SELECT r.origin, r.destination, r.duration_min, min(s.price)::int AS from_price, count(s.id)::int AS trips
          FROM routes r
@@ -90,6 +94,14 @@ export default async function HomePage({ searchParams }) {
       </main>
     );
   }
+
+  hasMore = schedules.length > shown;
+  schedules = schedules.slice(0, shown);
+  const moreParams = new URLSearchParams();
+  if (from) moreParams.set('from', from);
+  if (to) moreParams.set('to', to);
+  if (date) moreParams.set('date', date);
+  moreParams.set('limit', String(shown + PAGE_SIZE));
 
   const allRoutes = await query(`SELECT DISTINCT origin, destination FROM routes WHERE status = 'active' ORDER BY origin, destination`);
   const originOptions = [...new Set(allRoutes.map((r) => r.origin))];
@@ -223,6 +235,13 @@ export default async function HomePage({ searchParams }) {
                   </article>
                 );
               })}
+            </div>
+          )}
+          {hasMore && (
+            <div style={{ marginTop: 20, textAlign: 'center' }}>
+              <Link href={`/?${moreParams.toString()}#jadwal`} className="btn ghost" scroll={false}>
+                Tampilkan {PAGE_SIZE} jadwal lagi
+              </Link>
             </div>
           )}
         </div>
