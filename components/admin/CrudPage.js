@@ -18,6 +18,8 @@ export default function CrudPage({
   createLabel = 'Tambah',
   noun = 'data',
   rowActions,
+  headerActions,
+  refreshKey = 0,
   confirmSubmit,
   emptyText = 'Belum ada data.',
 }) {
@@ -49,7 +51,7 @@ export default function CrudPage({
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [load]);
+  }, [load, refreshKey]);
 
   function optionsFor(f) {
     if (f.options) return f.options;
@@ -64,6 +66,14 @@ export default function CrudPage({
     for (const f of fields) values[f.name] = f.default !== undefined ? String(f.default) : '';
     setFormError('');
     setModal({ row: null, values });
+  }
+
+  /** Buka form "tambah" dengan isian awal dari data yang ada (untuk fitur Salin). */
+  function openCopy(row, note) {
+    const values = {};
+    for (const f of fields) values[f.name] = row[f.name] === null || row[f.name] === undefined ? '' : String(row[f.name]);
+    setFormError('');
+    setModal({ row: null, values, note });
   }
 
   function openEdit(row) {
@@ -109,9 +119,12 @@ export default function CrudPage({
           <h1>{title}</h1>
           {subtitle && <p className="muted" style={{ margin: 0 }}>{subtitle}</p>}
         </div>
-        <button className="btn" onClick={openCreate}>
-          {createLabel}
-        </button>
+        <div className="row">
+          {headerActions}
+          <button className="btn" onClick={openCreate}>
+            {createLabel}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -153,7 +166,7 @@ export default function CrudPage({
                   ))}
                   <td>
                     <div className="actions">
-                      {rowActions && rowActions(row, { reload: load })}
+                      {rowActions && rowActions(row, { reload: load, copy: openCopy })}
                       <button className="btn ghost sm" onClick={() => openEdit(row)}>
                         Ubah
                       </button>
@@ -171,6 +184,11 @@ export default function CrudPage({
       {modal && (
         <Modal title={modal.row ? `Ubah ${noun}` : `${createLabel} ${noun}`} onClose={() => setModal(null)}>
           <form onSubmit={save}>
+            {modal.note && (
+              <div className="alert info" style={{ marginBottom: 14 }}>
+                {modal.note}
+              </div>
+            )}
             <div className="form-grid">
               {fields.map((f) => {
                 const id = `f-${f.name}`;

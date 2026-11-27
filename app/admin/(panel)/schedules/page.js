@@ -3,13 +3,26 @@
 import { useState } from 'react';
 import CrudPage from '@/components/admin/CrudPage';
 import ManifestModal from '@/components/admin/ManifestModal';
+import RecurringModal from '@/components/admin/RecurringModal';
 import { StatusBadge } from '@/components/admin/ui';
-import { fmtDateTime, rupiah } from '@/lib/format';
+import { fmtDate, fmtTime, rupiah, tzLabel } from '@/lib/format';
 
 const lookups = { routes: '/api/admin/routes', buses: '/api/admin/buses' };
 
 const columns = [
-  { key: 'departure_at', label: 'Berangkat', render: (r) => <strong>{fmtDateTime(r.departure_at)}</strong> },
+  {
+    key: 'departure_at',
+    label: 'Berangkat',
+    render: (r) => (
+      <span className="nowrap">
+        <strong>{fmtDate(r.departure_at)}</strong>
+        <br />
+        <span className="small muted">
+          {fmtTime(r.departure_at)} {tzLabel}
+        </span>
+      </span>
+    ),
+  },
   { key: 'route', label: 'Rute', render: (r) => `${r.origin} - ${r.destination}` },
   { key: 'bus_name', label: 'Bus', render: (r) => <>{r.bus_name}<br /><span className="small muted mono">{r.plate}</span></> },
   { key: 'price', label: 'Harga', render: (r) => rupiah(r.price) },
@@ -70,8 +83,18 @@ function confirmSubmit(values, row) {
   return null;
 }
 
+/** 'YYYY-MM-DDTHH:MM' + 1 hari (aritmatika tanggal murni, tidak terpengaruh zona waktu). */
+function nextDay(local) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(local || '');
+  if (!m) return local;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 1));
+  return `${d.toISOString().slice(0, 10)}T${m[4]}`;
+}
+
 export default function SchedulesPage() {
   const [manifest, setManifest] = useState(null);
+  const [recurring, setRecurring] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   return (
     <>
       <CrudPage
@@ -83,14 +106,43 @@ export default function SchedulesPage() {
         lookups={lookups}
         noun="jadwal"
         confirmSubmit={confirmSubmit}
+        refreshKey={refreshKey}
         emptyText="Belum ada jadwal. Pastikan sudah ada rute dan bus, lalu tambahkan jadwal."
-        rowActions={(row) => (
-          <button className="btn ghost sm" onClick={() => setManifest(row)}>
-            Penumpang
+        headerActions={
+          <button className="btn ghost" onClick={() => setRecurring(true)}>
+            Jadwal berulang
           </button>
+        }
+        rowActions={(row, { copy }) => (
+          <>
+            <button className="btn ghost sm" onClick={() => setManifest(row)}>
+              Penumpang
+            </button>
+            <button
+              className="btn ghost sm"
+              title="Buat jadwal baru dengan isian yang sama"
+              onClick={() =>
+                copy(
+                  { ...row, departure_local: nextDay(row.departure_local), status: 'scheduled' },
+                  'Menyalin jadwal ini. Tanggal sudah dimajukan satu hari; ubah tanggal, jam, bus, atau harga bila perlu, lalu simpan.',
+                )
+              }
+            >
+              Salin
+            </button>
+          </>
         )}
       />
       {manifest && <ManifestModal schedule={manifest} onClose={() => setManifest(null)} />}
+      {recurring && (
+        <RecurringModal
+          onClose={() => setRecurring(false)}
+          onDone={() => {
+            setRecurring(false);
+            setRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
     </>
   );
 }

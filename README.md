@@ -51,8 +51,41 @@ Pembatalan jadwal membatalkan semua pemesanan aktifnya. Pembayaran yang sudah lu
 
 - **Pembayaran diverifikasi manual.** Belum ada integrasi payment gateway (Midtrans, Xendit, dsb.). Bila ingin otomatis, tambahkan webhook yang memanggil logika yang sama dengan `app/api/admin/payments/[id]/route.js`.
 - **Belum ada pengiriman email atau WhatsApp otomatis.** Pelanggan memakai kode pemesanan dan halaman *Cek pesanan* (kode + nomor HP).
-- **Belum ada pembatasan laju (rate limit)** pada pemesanan publik dan login. Aktifkan Vercel Firewall atau tambahkan Upstash Ratelimit sebelum dipakai luas.
+- **Pembatasan laju sudah aktif** (lihat bagian di bawah). Untuk perlindungan tambahan terhadap serangan besar, aktifkan juga Vercel Firewall.
 - Ganti isi `payment_instructions` (rekening, e-wallet) di menu Pengaturan; nilai bawaan hanyalah contoh.
+
+## Perlindungan dari penyalahgunaan
+
+Hitungan disimpan di tabel `rate_limits` di Neon, jadi berlaku di semua server Vercel tanpa layanan tambahan.
+
+| Aksi | Batas |
+|---|---|
+| Login admin | 8 percobaan per 15 menit per alamat IP, dan 15 per 15 menit per username. Login yang berhasil mereset hitungan. |
+| Membuat pemesanan | 10 per 10 menit per alamat IP |
+| Konfirmasi pembayaran | 20 per 10 menit per alamat IP |
+| Pesanan menunggu bayar | Maksimal 3 per nomor HP (penjualan loket tidak dibatasi) |
+
+Pengunjung yang melewati batas melihat pesan "Coba lagi dalam ... menit". Angkanya ada di `app/api/admin/login/route.js`, `app/api/bookings/route.js`, `app/api/bookings/[code]/pay/route.js`, dan `MAX_PENDING_PER_PHONE` di `lib/booking.js`.
+
+## FAQ dan kebijakan di beranda
+
+Isinya diatur di **Admin, Pengaturan**. Satu blok = satu pertanyaan (atau satu kebijakan): baris pertama judul, baris berikutnya isi, antar blok dipisah satu baris kosong. Kosongkan kolomnya untuk menyembunyikan bagian itu dari beranda. **Teks bawaan hanyalah contoh, sesuaikan dengan aturan perusahaan Anda**, terutama kebijakan pembatalan dan bagasi.
+
+## Jadwal berulang dan salin jadwal
+
+Di **Admin, Jadwal**:
+- **Salin**: membuka formulir jadwal baru berisi data jadwal itu, tanggal sudah dimajukan satu hari.
+- **Jadwal berulang**: pilih rute, bus, jam, harga, rentang tanggal (maksimal 92 hari), dan hari-hari berangkat. Pratinjau menampilkan jumlah jadwal yang akan dibuat. Jadwal yang sudah ada (bus dan waktu sama) dilewati, jadi aman dijalankan ulang.
+
+## Memperbarui dari versi sebelumnya
+
+Fitur pembatasan laju memakai satu tabel baru. Setelah memasang versi ini, jalankan sekali dari komputer Anda dengan `DATABASE_URL` yang sama:
+
+```bash
+npm run db:setup
+```
+
+Perintah ini aman diulang: tabel dan akun admin yang sudah ada tidak diubah. Bila dilewatkan, situs tetap berjalan tetapi pembatasan laju tidak aktif.
 
 ## Struktur
 

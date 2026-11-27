@@ -24,6 +24,7 @@ export function SiteHeader({ name }) {
         <nav className="nav" aria-label="Menu utama">
           <Link href="/#jadwal">Jadwal</Link>
           <Link href="/#cara-pesan">Cara pesan</Link>
+          <Link href="/#faq">FAQ</Link>
           <Link href="/cek">Cek pesanan</Link>
           <Link href="/#kontak">Kontak</Link>
         </nav>

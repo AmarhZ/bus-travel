@@ -19,6 +19,22 @@ const FIELDS = [
     full: true,
     hint: 'Satu akun per baris. Ditampilkan kepada pelanggan setelah memesan.',
   },
+  {
+    name: 'faq',
+    label: 'Pertanyaan yang sering diajukan (FAQ)',
+    type: 'textarea',
+    rows: 14,
+    full: true,
+    hint: 'Pisahkan tiap pertanyaan dengan satu baris kosong. Baris pertama = pertanyaan, baris berikutnya = jawaban. Kosongkan untuk menyembunyikan bagian FAQ.',
+  },
+  {
+    name: 'policy',
+    label: 'Kebijakan perjalanan',
+    type: 'textarea',
+    rows: 14,
+    full: true,
+    hint: 'Format sama: judul di baris pertama, isi di baris berikutnya, antar kebijakan dipisah baris kosong. Sesuaikan dengan aturan perusahaan Anda. Kosongkan untuk menyembunyikan bagian ini.',
+  },
 ];
 
 export default function SettingsPage() {
@@ -83,7 +99,7 @@ export default function SettingsPage() {
               <div key={f.name} className={`field ${f.full ? 'full' : ''}`}>
                 <label htmlFor={f.name}>{f.label}</label>
                 {f.type === 'textarea' ? (
-                  <textarea id={f.name} className="input" rows={5} value={values[f.name] ?? ''} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })} />
+                  <textarea id={f.name} className="input" rows={f.rows || 5} value={values[f.name] ?? ''} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })} />
                 ) : (
                   <input id={f.name} className="input" type={f.type || 'text'} required={f.required} value={values[f.name] ?? ''} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })} />
                 )}

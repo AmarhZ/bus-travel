@@ -1,9 +1,15 @@
 import { query, one } from '@/lib/db';
 import { expireStale } from '@/lib/booking';
 import { HttpError, handle, json, readJson } from '@/lib/api';
+import { clientIp, rateLimit } from '@/lib/ratelimit';
 
 /** Pelanggan mengonfirmasi sudah membayar. Admin yang memverifikasi dan melunasi. */
 export const POST = handle(async (req, { params }) => {
+  await rateLimit(`pay:${clientIp(req)}`, {
+    limit: 20,
+    windowSec: 600,
+    message: 'Terlalu banyak konfirmasi pembayaran.',
+  });
   const { code } = await params;
   const body = await readJson(req);
   const method = String(body.method || '');

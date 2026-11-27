@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
 import { expireStale } from '@/lib/booking';
-import { getSettings } from '@/lib/settings';
+import { getSettings, parseBlocks } from '@/lib/settings';
 import { TZ, fmtDate, fmtDuration, fmtTime, rupiah, tzLabel } from '@/lib/format';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 
@@ -95,6 +95,8 @@ export default async function HomePage({ searchParams }) {
     );
   }
 
+  const faq = parseBlocks(settings.faq);
+  const policy = parseBlocks(settings.policy);
   hasMore = schedules.length > shown;
   schedules = schedules.slice(0, shown);
   const moreParams = new URLSearchParams();
@@ -322,6 +324,43 @@ export default async function HomePage({ searchParams }) {
           </ol>
         </div>
       </section>
+
+      {policy.length > 0 && (
+        <section className="section tight" id="kebijakan">
+          <div className="container">
+            <div className="section-head">
+              <h2>Kebijakan perjalanan</h2>
+            </div>
+            <div className="policy-grid">
+              {policy.map((p) => (
+                <div key={p.title} className="policy-card">
+                  <h3>{p.title}</h3>
+                  <p>{p.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {faq.length > 0 && (
+        <section className="section" id="faq">
+          <div className="container faq-wrap">
+            <div className="section-head">
+              <h2>Pertanyaan yang sering diajukan</h2>
+              <p className="muted">Tidak menemukan jawabannya? Hubungi kami lewat kontak di bagian bawah halaman.</p>
+            </div>
+            <div className="faq-list">
+              {faq.map((f) => (
+                <details key={f.title} className="faq-item">
+                  <summary>{f.title}</summary>
+                  <p>{f.body}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <SiteFooter settings={settings} />
     </>

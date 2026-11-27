@@ -49,8 +49,8 @@ export function Modal({ title, onClose, children, wide }) {
 
 const TONES = {
   booking: { pending: 'warn', paid: 'ok', cancelled: 'bad', expired: 'bad' },
-  payment: { pending: '', submitted: 'warn', paid: 'ok', rejected: 'bad', failed: 'bad', refunded: 'brand' },
-  schedule: { scheduled: 'brand', cancelled: 'bad', departed: 'ok', completed: 'ok' },
+  payment: { pending: '', submitted: 'warn', paid: 'ok', rejected: 'bad', failed: 'bad', refunded: 'accent' },
+  schedule: { scheduled: 'accent', cancelled: 'bad', departed: 'ok', completed: 'ok' },
   bus: { active: 'ok', maintenance: 'warn', retired: 'bad' },
   route: { active: 'ok', inactive: 'bad' },
 };

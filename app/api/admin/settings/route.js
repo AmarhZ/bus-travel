@@ -1,6 +1,6 @@
 import { query } from '@/lib/db';
 import { HttpError, json, readJson, withAdmin } from '@/lib/api';
-import { getSettings, SETTING_KEYS } from '@/lib/settings';
+import { getSettings, SETTING_KEYS, SETTING_MAX_LENGTH } from '@/lib/settings';
 
 export const GET = withAdmin(async () => json(await getSettings()));
 
@@ -8,7 +8,7 @@ export const PUT = withAdmin(async (req) => {
   const body = await readJson(req);
   const clean = {};
   for (const k of SETTING_KEYS) {
-    if (body[k] !== undefined) clean[k] = String(body[k]).trim().slice(0, 2000);
+    if (body[k] !== undefined) clean[k] = String(body[k]).trim().slice(0, SETTING_MAX_LENGTH[k] || 2000);
   }
   const exp = parseInt(clean.payment_expiry_minutes ?? '120', 10);
   if (!Number.isInteger(exp) || exp < 10 || exp > 10080) {
